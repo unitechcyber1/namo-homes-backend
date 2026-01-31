@@ -10,6 +10,6 @@ const router = express.Router();
 router
   .get("/clients", protect, getOurClients)
   .post("/client", protect, postOurClients)
-  .delete("/delete/:id", protect, deleteClient);
+  .delete("/client/delete/:id", protect, deleteClient);
 
 module.exports = router;
