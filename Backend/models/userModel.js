@@ -5,6 +5,7 @@ const userModel = mongoose.Schema(
   {
     email: { type: String, required: true },
     password: { type: String, required: true },
+    phone_number:{type:Number,required:true},
     verifytoken: {
       type: String,
     },

@@ -13,8 +13,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
+  const { email, password, phone_number} = req.body;
+  if (!email || !password ||!phone_number) {
     res.status(400);
     throw new Error("Please enter all the fields!");
   }
@@ -27,6 +27,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     email,
     password,
+    phone_number
   });
   if (user) {
     res.status(201).json({
@@ -39,6 +40,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("Failed to create the user!");
   }
 });
+
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
