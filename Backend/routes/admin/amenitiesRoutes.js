@@ -10,10 +10,10 @@ const {
 const router = express.Router();
 
 router
-  .get("/amenities", getAmenities)
-  .get("/:id", protect, getAmenityById)
+  .get("/amenity", getAmenities)
+  .get("/amenity/:id", protect, getAmenityById)
   .post("/amenities", protect, postAmenities)
-  .delete("/delete/:amenityId", protect, deleteAmenities)
+  .delete("/amenity/delete/:amenityId", protect, deleteAmenities)
   .put("/amenity-by-id/:id", protect, addOrEditAmenity);
 
 module.exports = router;

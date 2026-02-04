@@ -18,7 +18,7 @@ router
   .put("/edit-builder/:id", editBuilders)
   .get("/builders", protect, getBuilder)
   .get("/builders/:id", protect, getBuilderById)
-  .delete("/delete/:id", protect, deleteBuilderById)
+  .delete("/builder/delete/:id", protect, deleteBuilderById)
   .get("/allbuilders", protect, getAllBuilder)
   .put("/update-order/:id", protect, topBuilderPropOrder)
   .put("/change-order", protect, topBuildersOrderByDrag)

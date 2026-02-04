@@ -16,6 +16,6 @@ router
   .post("/statesbycountry", protect, getStateByCountry)
   .post("/states", protect, postState)
   .put("/states/:stateId", protect, addOrEditState)
-  .delete("/delete/:stateId", protect, deleteState);
+  .delete("/state/delete/:stateId", protect, deleteState);
 
 module.exports = router;

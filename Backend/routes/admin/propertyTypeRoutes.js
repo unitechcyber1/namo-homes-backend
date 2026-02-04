@@ -10,6 +10,6 @@ const router = express.Router();
 router
   .get("/propertyTypes", protect, getPropertyTypes)
   .post("/propertyTypes", protect, postPropertyTypes)
-  .delete("/delete/:propertyTypesId", protect, deletePropertyTypes);
+  .delete("/propertyType/delete/:propertyTypesId", protect, deletePropertyTypes);
 
 module.exports = router;

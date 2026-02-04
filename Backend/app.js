@@ -4,30 +4,9 @@ const cors = require("cors");
 const bodyParser = require('body-parser');
 const connectDB = require("./config/db");
 const { notFound, errorHandle } = require("./middleware/errorMiddleware");
-const userRoute = require("./routes/admin/userRoutes");
-const countryRoute = require("./routes/admin/countryRoutes");
-const stateRoute = require("./routes/admin/stateRoutes");
-const imageUploadRouter = require("./routes/admin/imageUploadRoutes");
-const cityRouter = require("./routes/admin/cityRoutes");
-const microlocationRouter = require("./routes/admin/microLocationRoutes");
-const amenityRouter = require("./routes/admin/amenitiesRoutes");
-const propertytypeRouter = require("./routes/admin/propertyTypeRoutes");
-const seoRouter = require("./routes/admin/seoRoutes");
-const builderRouter = require("./routes/admin/builderRoutes");
-const builderProjectRouter = require("./routes/admin/builderProjectRoutes");
-const clientCityRoutes = require("./routes/client/cityRoutes");
-const clientcountryRoutes = require("./routes/client/countryRoutes");
-const clientMicrolocationRoutes = require("./routes/client/microlocationRoutes");
-const clientStateRoutes = require("./routes/client/stateRoutes");
-const ourClientRouter = require("./routes/admin/ourClientRoutes");
-const clientRouter = require("./routes/client/ourClientsRoutes");
-const clientSeoRouter = require("./routes/client/seoRoutes");
 const app = express();
 const AWS = require("aws-sdk");
 const contactFormRouter = require("./routes/client/contactFormRouter");
-const MediaRouter = require("./routes/admin/mediaRoutes")
-const seoDwarkaRouter = require("./routes/admin/seoDwarkaRoutes")
-const newLaunchRouter = require("./routes/admin/newLaunchRoutes")
 const adminRoutes = require("./routes/admin/index")
 const clientRoutes = require("./routes/client/index")
 const { protect } = require("./middleware/authMiddleware")
@@ -155,28 +134,7 @@ app.get("/", (req, res) => {
 //-----------------aws-s3------------------------
 app.use("/api/admin", adminRoutes);
 app.use("/api/client", clientRoutes);
-// app.use("/api/user", userRoute);
-// app.use("/api/allCountry", countryRoute);
-// app.use("/api/state", stateRoute);
-// app.use("/api/image", imageUploadRouter);
-// app.use("/api/city", cityRouter);
-// app.use("/api/microlocation", microlocationRouter);
-// app.use("/api/amenity", amenityRouter);
-// app.use("/api/propertytype", propertytypeRouter);
-// app.use("/api/seo", seoRouter);
-// app.use("/api/builder", builderRouter);
-// app.use("/api/project", builderProjectRouter);
-// app.use("/api/ourClient", ourClientRouter);
-// app.use("/api", clientCityRoutes);
-// app.use("/api/micro-location", clientMicrolocationRoutes);
-// app.use("/api", clientStateRoutes);
-// app.use("/api", clientcountryRoutes);
-// app.use("/api/client", clientRouter);
-// app.use("/api/seo", clientSeoRouter);
-// app.use("/api", MediaRouter)
-// app.use("/api/dwarka", seoDwarkaRouter)
-// app.use("/api/user", dwarkaProjectUserRouter)
-// app.use("/api/newlaunch", newLaunchRouter)
+
 app.use(notFound);
 app.use(errorHandle);
 

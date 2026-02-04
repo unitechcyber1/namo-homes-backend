@@ -15,7 +15,7 @@ const {
 const router = express.Router();
 
 router
-  .get("/microlocations", protect, getMicroLocation)
+  .get("/locations", protect, getMicroLocation)
   .get(
     "/priority/:cityId",
     protect,
@@ -36,7 +36,7 @@ router
   )
   .post("/microbycity", protect, getMicrolocationByCity)
   .post("/microlocations", protect, postMicroLocation)
-  .delete("/delete/:microlocationId", protect, deleteMicroLocation)
+  .delete("/microlocation/delete/:microlocationId", protect, deleteMicroLocation)
   .get("/micro-locations/:cityname", protect, getMicroBycityName)
   .put("/micro-by-id/:id", protect, addOrEditMicrolocation);
 
