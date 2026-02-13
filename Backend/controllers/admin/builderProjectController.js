@@ -254,6 +254,7 @@ const getProjectsWithPagination = asyncHandler(async (req, res) => {
       .populate("location.city", "name")
       .populate("location.micro_location", "name")
       .populate("builder", "name")
+      .populate('images.image')
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 })

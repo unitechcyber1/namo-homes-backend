@@ -17,6 +17,6 @@ router
   .put("/country/:countryId", protect, addOrEditCountry)
   .get("/country/:id", protect, getCountryById)
   .get("/country/changeStatus/:countryId", protect, toggleCountryStatus)
-  .delete("/delete/:countryId", protect, deleteCountry);
+  .delete("/country/:countryId", protect, deleteCountry);
 
 module.exports = router;
