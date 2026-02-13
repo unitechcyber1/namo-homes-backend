@@ -14,7 +14,7 @@ router
   .get("/states", protect, getState)
   .get("/states/priority/:id", protect, getStateWithPriority)
   .post("/statesbycountry", protect, getStateByCountry)
-  .post("/states", protect, postState)
+  .post("/state", protect, postState)
   .put("/states/:stateId", protect, addOrEditState)
   .delete("/state/delete/:stateId", protect, deleteState);
 

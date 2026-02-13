@@ -30,13 +30,22 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(contactFormRouter);
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*"); // change * to your domain in production
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  if (req.method === "OPTIONS") return res.sendStatus(204);
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*"); // change * to your domain in production
+//   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+//   if (req.method === "OPTIONS") return res.sendStatus(204);
+//   next();
+// });
+app.use(cors({
+  origin: [
+    "http://localhost:4028",
+    "http://localhost:3000",
+    "https://yourdomain.com"
+  ],
+  credentials: true,
+}));
+
 const multer = require("multer");
 
 const storage = multer.memoryStorage();
