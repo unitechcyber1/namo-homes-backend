@@ -41,6 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     email: normalizedEmail,
     password,
+    phone_number
   });
 
   if (!user) {
@@ -57,6 +58,7 @@ const registerUser = asyncHandler(async (req, res) => {
     token,
   });
 });
+
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
