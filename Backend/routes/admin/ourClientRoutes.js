@@ -1,5 +1,4 @@
 const express = require("express");
-const { protect } = require("../../middleware/authMiddleware");
 const {
   getOurClients,
   postOurClients,
@@ -8,8 +7,8 @@ const {
 const router = express.Router();
 
 router
-  .get("/clients", protect, getOurClients)
-  .post("/client", protect, postOurClients)
-  .delete("/client/delete/:id", protect, deleteClient);
+  .get("/clients", getOurClients)
+  .post("/client", postOurClients)
+  .delete("/client/delete/:id", deleteClient);
 
 module.exports = router;

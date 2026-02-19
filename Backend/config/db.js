@@ -6,10 +6,25 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log(`mongodb connected: ${conn.connection.host}`);
+    console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+    
+    // Handle connection events
+    mongoose.connection.on('error', (err) => {
+      console.error('MongoDB connection error:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.warn('MongoDB disconnected');
+    });
   } catch (error) {
-    console.log(`Error: ${error.message}`);
-    process.exit();
+    console.error(`❌ MongoDB connection error: ${error.message}`);
+    // In production, you might want to retry instead of exiting immediately
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Retrying MongoDB connection in 5 seconds...');
+      setTimeout(connectDB, 5000);
+    } else {
+      process.exit(1);
+    }
   }
 };
 

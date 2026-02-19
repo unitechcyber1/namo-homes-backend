@@ -1,5 +1,4 @@
 const express = require("express");
-const { protect } = require("../../middleware/authMiddleware");
 const {
   getAmenities,
   postAmenities,
@@ -11,9 +10,9 @@ const router = express.Router();
 
 router
   .get("/amenity", getAmenities)
-  .get("/amenity/:id", protect, getAmenityById)
-  .post("/amenities", protect, postAmenities)
-  .delete("/amenity/delete/:amenityId", protect, deleteAmenities)
-  .put("/amenity-by-id/:id", protect, addOrEditAmenity);
+  .get("/amenity/:id", getAmenityById)
+  .post("/amenities", postAmenities)
+  .delete("/amenity/delete/:amenityId", deleteAmenities)
+  .put("/amenity-by-id/:id", addOrEditAmenity);
 
 module.exports = router;

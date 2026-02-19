@@ -11,10 +11,10 @@ const {
 const router = express.Router();
 
 router.post("/signup", registerUser)
-      .get("/users", allUsers)
-      .post("/login", authUser)
-      .post("/sendpasswordlink", sendUserEmail)
-      .get("/forgot-password/:id/:token", forgotUserPassword)
-      .post("/:id/:token", updateNewPassword);
+  .get("/users", allUsers)
+  .post("/login", authUser)
+  .post("/sendpasswordlink", sendUserEmail)
+  .get("/forgot-password/:id/:token", forgotUserPassword)
+  .post("/:id/:token", updateNewPassword);
 
 module.exports = router;

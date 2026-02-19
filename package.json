@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon Backend/app.js"
+    "start": "node Backend/app.js",
+    "dev": "nodemon Backend/app.js",
+    "production": "NODE_ENV=production node Backend/app.js"
   },
   "author": "gp-admin",
   "license": "ISC",
   "dependencies": {
+    "aes256": "^1.1.0",
     "aws-sdk": "^2.1383.0",
     "axios": "^1.5.0",
     "bcrypt": "^5.1.0",
@@ -15,13 +18,13 @@
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
     "express-async-handler": "^1.2.0",
     "express-graphql": "^0.12.0",
     "file-type": "^16.5.4",
     "graphql": "^15.8.0",
-    "jsonwebtoken": "^9.0.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^7.1.1",
     "multer": "^1.4.5-lts.1",
     "multer-s3": "^2.10.0",
@@ -29,6 +32,7 @@
     "nodemon": "^2.0.22",
     "react-draft-wysiwyg": "^1.15.0",
     "react-scripts": "^5.0.1",
+    "redis": "^5.10.0",
     "scripts": "^0.1.0",
     "sharp": "^0.33.2"
   },

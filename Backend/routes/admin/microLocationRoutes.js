@@ -1,5 +1,4 @@
 const express = require("express");
-const { protect } = require("../../middleware/authMiddleware");
 const {
   getMicroLocation,
   postMicroLocation,
@@ -15,29 +14,29 @@ const {
 const router = express.Router();
 
 router
-  .get("/locations", protect, getMicroLocation)
+  .get("/locations",  getMicroLocation)
   .get(
     "/priority/:cityId",
-    protect,
+    
 
     getMicrolocationWithPriority
   )
   .get(
     "/priority-location/:cityId",
-    protect,
+    
 
     getMicrolocationForWorkspace
   )
-  .put("/priority-microlocation/:id", protect, changeOrderMicrolocation)
+  .put("/priority-microlocation/:id",  changeOrderMicrolocation)
   .put(
     "/update-microlocation-priority",
-    protect,
+    
     changeOrderMicrolocationbyDrag
   )
-  .post("/microbycity", protect, getMicrolocationByCity)
-  .post("/microlocations", protect, postMicroLocation)
-  .delete("/microlocation/delete/:microlocationId", protect, deleteMicroLocation)
-  .get("/micro-locations/:cityname", protect, getMicroBycityName)
-  .put("/micro-by-id/:id", protect, addOrEditMicrolocation);
+  .post("/microbycity",  getMicrolocationByCity)
+  .post("/microlocations",  postMicroLocation)
+  .delete("/microlocation/delete/:microlocationId",  deleteMicroLocation)
+  .get("/micro-locations/:cityname",  getMicroBycityName)
+  .put("/micro-by-id/:id",  addOrEditMicrolocation);
 
 module.exports = router;

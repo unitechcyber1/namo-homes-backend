@@ -4,6 +4,7 @@ const cors = require("cors");
 const bodyParser = require('body-parser');
 const connectDB = require("./config/db");
 const { notFound, errorHandle } = require("./middleware/errorMiddleware");
+const validateEnv = require("./config/envValidation");
 const app = express();
 const AWS = require("aws-sdk");
 const contactFormRouter = require("./routes/client/contactFormRouter");
@@ -11,6 +12,9 @@ const adminRoutes = require("./routes/admin/index")
 const clientRoutes = require("./routes/client/index")
 const { protect } = require("./middleware/authMiddleware")
 require("dotenv").config();
+
+// Validate environment variables before starting
+validateEnv();
 connectDB();
 
 
@@ -37,16 +41,26 @@ app.use(contactFormRouter);
 //   if (req.method === "OPTIONS") return res.sendStatus(204);
 //   next();
 // });
+// CORS configuration - Update with your production domains
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ["http://localhost:4028", "http://localhost:3000"];
+
 app.use(cors({
-  origin: [
-    "http://localhost:4028",
-    "http://localhost:3000",
-    "https://yourdomain.com"
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
 const multer = require("multer");
+const jwtAdminVerify = require("./middleware/authMiddleware");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -115,7 +129,8 @@ app.post("/upload-image", upload.array("files"), (req, res) => {
       res.status(500).send(err);
     });
 });
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyj-PR0KgZNvKNidgixI8i-YDHfaMgfb8m57zoEGUVB0EDiP0f3CkYL7-VZYtEWYs8vkA/exec";
+// Google Apps Script URL - Move to environment variable
+const GAS_URL = process.env.GAS_URL || "https://script.google.com/macros/s/AKfycbyj-PR0KgZNvKNidgixI8i-YDHfaMgfb8m57zoEGUVB0EDiP0f3CkYL7-VZYtEWYs8vkA/exec";
 app.post("/api/sheet", async (req, res) => {
   try {
     const resp = await fetch(GAS_URL, {
@@ -140,14 +155,54 @@ app.post("/api/sheet", async (req, res) => {
 app.get("/", (req, res) => {
   res.send("API is running for namohomes...");
 });
+
+// Health check endpoint for production monitoring
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 //-----------------aws-s3------------------------
-app.use("/api/admin", adminRoutes);
+app.use("/api/admin", jwtAdminVerify, adminRoutes);
 app.use("/api/client", clientRoutes);
 
 app.use(notFound);
 app.use(errorHandle);
 
-app.listen(
-  process.env.PORT,
-  console.log(`server started on ${process.env.PORT}`)
+const PORT = process.env.PORT || 5000;
+
+const server = app.listen(
+  PORT,
+  () => {
+    console.log(`Server started on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  }
 );
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    // Close database connections
+    const mongoose = require('mongoose');
+    mongoose.connection.close(false, () => {
+      console.log('MongoDB connection closed');
+      process.exit(0);
+    });
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    const mongoose = require('mongoose');
+    mongoose.connection.close(false, () => {
+      console.log('MongoDB connection closed');
+      process.exit(0);
+    });
+  });
+});

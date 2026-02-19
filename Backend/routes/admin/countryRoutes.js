@@ -1,5 +1,4 @@
 const express = require("express");
-const { protect } = require("../../middleware/authMiddleware");
 const {
   getCountries,
   postCountry,
@@ -12,11 +11,11 @@ const {
 const router = express.Router();
 
 router
-  .get("/countries", protect, getCountries)
-  .post("/country", protect, postCountry)
-  .put("/country/:countryId", protect, addOrEditCountry)
-  .get("/country/:id", protect, getCountryById)
-  .get("/country/changeStatus/:countryId", protect, toggleCountryStatus)
-  .delete("/country/:countryId", protect, deleteCountry);
+  .get("/countries", getCountries)
+  .post("/country", postCountry)
+  .put("/country/:countryId", addOrEditCountry)
+  .get("/country/:id", getCountryById)
+  .get("/country/changeStatus/:countryId", toggleCountryStatus)
+  .delete("/country/:countryId", deleteCountry);
 
 module.exports = router;

@@ -4,11 +4,9 @@ const {
   getImages,
   deleteImages,
 } = require("../../controllers/admin/mediaController");
-
-const { protect } = require("../../middleware/authMiddleware");
 const router = express.Router();
 
-router.post("/media/upload",protect, uploadImage)
-.get("/media/images", protect, getImages)
-.delete("/delete/:imageId", protect, deleteImages)
+router.post("/media/upload", uploadImage)
+  .get("/media/images", getImages)
+  .delete("/delete/:imageId", deleteImages)
 module.exports = router;
