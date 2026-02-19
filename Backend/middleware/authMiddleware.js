@@ -1,31 +1,56 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/userModel");
-const asyncHandler = require("express-async-handler");
+const aes256 = require("aes256");
+const redis = require("../config/redis");
+require("dotenv").config();
 
-const protect = asyncHandler(async (req, res, next) => {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-      //decodes token id
-      const decoded = jwt.verify(token, process.env.jwt_SECRET);
+const jwtAdminVerify = async (req, res, next) => {
+  try {
 
-      req.user = await User.findById(decoded.id).select("-password");
+    // ✅ Routes to exclude
+    const excludedRoutes = [
+      "/login",
+      "/signup",
+      "/forgot-password"
+    ];
 
-      next();
-    } catch (error) {
-      res.status(401);
-      throw new Error("Not authorized, token failed");
+    if (excludedRoutes.includes(req.path)) {
+      return next();
     }
-  }
 
-  if (!token) {
-    res.status(401);
-    throw new Error("Not authorized, no token");
-  }
-});
+    const authHeader = req.headers.authorization;
 
-module.exports = { protect };
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET_ADMIN
+    );
+
+    const decryptedId = aes256.decrypt(
+      process.env.AES_SECRET_KEY,
+      decoded.id
+    );
+
+    const storedToken = await redis.get(decryptedId);
+
+    if (!storedToken || storedToken !== token) {
+      return res.status(401).json({ message: "Invalid Token" });
+    }
+
+    req.admin = {
+      id: decryptedId,
+      role: "admin",
+    };
+
+    next();
+
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid Token" });
+  }
+};
+
+module.exports = jwtAdminVerify;

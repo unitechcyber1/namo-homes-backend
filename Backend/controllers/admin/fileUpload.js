@@ -28,7 +28,7 @@ const _resize = async (data, params) => {
                 fit: 'inside', // Maintain aspect ratio, fit the resized image within the specified dimensions
                 withoutEnlargement: true // Do not enlarge the image if smaller than the specified dimensions
             })
-            .jpeg({ quality: 80 }) // You can adjust quality settings as needed
+            .webp({ quality: 80 }) // You can adjust quality settings as needed
             .toBuffer();
     } catch (e) {
         throw e;
@@ -41,8 +41,8 @@ const uploadFilesToS3 = async (req, res, bucketName, isDwarka, isProp) => {
     try {
         for (const file of req.files) {
             let params = {};
-            let fileExtension = file.originalname.split(".").pop();
-            let fileName = `${_getName()}.${fileExtension}`;
+            // let fileExtension = file.originalname.split(".").pop();
+            let fileName = `${_getName()}.webp`;
 
             let buffer = file.buffer;
             if (allowedFormats.includes(file.mimetype)) {
@@ -50,6 +50,7 @@ const uploadFilesToS3 = async (req, res, bucketName, isDwarka, isProp) => {
                     Acl: "public-read",
                     Bucket: `${bucketName}/images`,
                     Key: fileName,
+                    ContentType: "image/webp",
                     size: file.size
                 };
                 if(isDwarka){

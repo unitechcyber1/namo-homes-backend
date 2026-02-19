@@ -1,5 +1,4 @@
 const express = require("express");
-const { protect } = require("../../middleware/authMiddleware");
 const {
   getCity,
   postCity,
@@ -10,10 +9,10 @@ const {
 const router = express.Router();
 
 router
-  .get("/cities", protect, getCity)
-  .post("/cities", protect, postCity)
-  .delete("/city/delete/:cityId", protect, deleteCity)
-  .post("/citybystate", protect, getCityByState)
-  .put("/city-by-id/:id", protect, addOrEditCity);
+  .get("/cities", getCity)
+  .post("/cities", postCity)
+  .delete("/city/delete/:cityId", deleteCity)
+  .post("/citybystate", getCityByState)
+  .put("/city-by-id/:id", addOrEditCity);
 
 module.exports = router;

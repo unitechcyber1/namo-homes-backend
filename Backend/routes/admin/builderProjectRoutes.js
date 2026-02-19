@@ -1,5 +1,4 @@
 const express = require("express");
-const { protect } = require("../../middleware/authMiddleware");
 const {
   postBuilderProjects,
   getProjects,
@@ -31,7 +30,7 @@ const {
   imageOrderChanges,
   deleteProjectImage
 } = require("../../controllers/admin/builderProjectController");
-const {uploadFilesToS3} = require("../../controllers/admin/fileUpload")
+const { uploadFilesToS3 } = require("../../controllers/admin/fileUpload")
 const router = express.Router();
 const multer = require("multer");
 require("dotenv").config();
@@ -41,47 +40,47 @@ const uploadMiddleware = (bucketName) => (req, res, next) => {
   uploadFilesToS3(req, res, bucketName, false, true);
 };
 router
-  .post("/", protect, postBuilderProjects)
-  .get("/projects",protect, getProjects)
-  .get("/projects-page",protect, getProjectsWithPagination)
+  .post("/project", postBuilderProjects)
+  .get("/projects", getProjects)
+  .get("/projects-page", getProjectsWithPagination)
   .post("/upload", upload.array("files"), uploadMiddleware(process.env.BUCKET_NAME))
-  .get("/projects/:id",protect, getProjectsById)  
-  .delete("/delete/:id",protect, deleteProjects)
-  .post("/file/delete",protect, deleteProjectImage)
-  .put("/changeStatus/:id", protect, changeProjectStatus)
-  .put("/edit-project/:id", protect, editProjects)
-  .put("/best-projects/:id", protect, topProjectsPropOrder)
-  .put("/update-top-projects", protect, topProjectsOrderByDrag)
+  .get("/projects/:id", getProjectsById)
+  .delete("/delete/:id", deleteProjects)
+  .post("/file/delete", deleteProjectImage)
+  .put("/changeStatus/:id", changeProjectStatus)
+  .put("/edit-project/:id", editProjects)
+  .put("/best-projects/:id", topProjectsPropOrder)
+  .put("/update-top-projects", topProjectsOrderByDrag)
   .get(
     "/projects-by-order/:city",
-    protect,
+
     getTopProjectbyCity
   )
-  .get("/project-details/:cityId", protect, getProjectsbyCityId)
+  .get("/project-details/:cityId", getProjectsbyCityId)
   .get("/projects-by-location/:id", getProjectsbyMicrolocation)
-  .put("/change-order/:id", protect, changeProjectOrder)
+  .put("/change-order/:id", changeProjectOrder)
   .get(
     "/priority-projects/:id",
     getProjectbyMicrolocationWithPriority
   )
-  .put("/update-priority", protect, changeProjectOrderbyDrag)
+  .put("/update-priority", changeProjectOrderbyDrag)
   .get("/search-projects", searchProjects)
   .get("/projects-by-builder/:id", getProjectsbyBuilder)
-  .put("/builder-order/:id", protect, changeBuilderProjectOrder)
-  .put("/builder-priority", protect, changeBuilderProjectOrderbyDrag)
+  .put("/builder-order/:id", changeBuilderProjectOrder)
+  .put("/builder-priority", changeBuilderProjectOrderbyDrag)
   .get(
     "/builder-projects/:id",
     getProjectbyByBuilderWithPriority
   )
   .get("/projects-by-plans/:id/:city", getProjectsbyPlansAndCity)
-  .put("/plans-order/:id", protect, changePlansProjectOrder)
-  .put("/plans-priority", protect, changePlansProjectOrderbyDrag)
+  .put("/plans-order/:id", changePlansProjectOrder)
+  .put("/plans-priority", changePlansProjectOrderbyDrag)
   .get(
     "/plans-projects/:id/:city",
     getProjectbyByPlansWithPriority
   )
-  .put("/priority-india/:id", protect, indiaProjectsOrder)
-  .put("/drag-priority", protect, indiaProjectOrderbyDrag)
-  .get("/project-india", protect, indiaProjectsWithPriority)
-  .put("/drag-images", protect, imageOrderChanges);
+  .put("/priority-india/:id", indiaProjectsOrder)
+  .put("/drag-priority", indiaProjectOrderbyDrag)
+  .get("/project-india", indiaProjectsWithPriority)
+  .put("/drag-images", imageOrderChanges);
 module.exports = router;

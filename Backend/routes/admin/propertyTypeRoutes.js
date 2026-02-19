@@ -1,5 +1,4 @@
 const express = require("express");
-const { protect } = require("../../middleware/authMiddleware");
 const {
   getPropertyTypes,
   postPropertyTypes,
@@ -8,8 +7,8 @@ const {
 const router = express.Router();
 
 router
-  .get("/propertyTypes", protect, getPropertyTypes)
-  .post("/propertyTypes", protect, postPropertyTypes)
-  .delete("/propertyType/delete/:propertyTypesId", protect, deletePropertyTypes);
+  .get("/propertyTypes", getPropertyTypes)
+  .post("/propertyTypes", postPropertyTypes)
+  .delete("/propertyType/delete/:propertyTypesId", deletePropertyTypes);
 
 module.exports = router;
