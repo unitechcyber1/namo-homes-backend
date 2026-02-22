@@ -44,7 +44,7 @@ app.use(contactFormRouter);
 // CORS configuration - Update with your production domains
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ["http://localhost:4028", "http://localhost:3000"];
+  : ["http://localhost:4028", "http://localhost:3000", "https://namohomes-admin-lts.vercel.app/", "https://namohomesindia.com/"];
 
 app.use(cors({
   origin: function (origin, callback) {
