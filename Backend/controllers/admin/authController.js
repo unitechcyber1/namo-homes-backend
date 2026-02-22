@@ -62,7 +62,13 @@ const registerUser = asyncHandler(async (req, res) => {
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Please enter email and password");
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const user = await User.findOne({ email: normalizedEmail });
 
   if (user && (await user.matchPassword(password))) {
 
@@ -87,7 +93,7 @@ const allUsers = asyncHandler(async (req, res) => {
     }
     : {};
   const users = await User.find(keyword).find({
-    _id: { $ne: req.user._id },
+    _id: { $ne: req.admin?.id || req.user?._id },
   });
   res.send(users);
 });

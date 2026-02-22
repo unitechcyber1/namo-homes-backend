@@ -6,14 +6,20 @@ require("dotenv").config();
 const jwtAdminVerify = async (req, res, next) => {
   try {
 
-    // ✅ Routes to exclude
+    // ✅ Routes to exclude (no auth required)
     const excludedRoutes = [
       "/login",
       "/signup",
       "/forgot-password"
     ];
 
-    if (excludedRoutes.includes(req.path)) {
+    // Match full path: /api/admin/signup -> basePath = /signup
+    const basePath = req.path.replace(/^\/api\/admin/, '') || '/';
+    const isExcluded = excludedRoutes.some(route => 
+      basePath === route || basePath.startsWith(route + '/')
+    );
+
+    if (isExcluded) {
       return next();
     }
 
