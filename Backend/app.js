@@ -30,7 +30,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(compression());
 app.use(express.json());
 app.use(express.static('public'));
-app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(contactFormRouter);
@@ -41,22 +40,32 @@ app.use(contactFormRouter);
 //   if (req.method === "OPTIONS") return res.sendStatus(204);
 //   next();
 // });
-// CORS configuration - Update with your production domains
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ["http://localhost:4028", "http://localhost:3000", "https://namohomes-admin-lts.vercel.app/", "https://namohomesindia.com/"];
+// CORS configuration - Add your frontend URLs to ALLOWED_ORIGINS (no trailing slash)
+// Example: ALLOWED_ORIGINS=https://namohomes-admin-lts.vercel.app,https://namohomesindia.com
+// Set ALLOWED_ORIGINS=* to allow all origins (use only if needed)
+const allowAllOrigins = process.env.ALLOWED_ORIGINS === '*';
+const allowedOriginsRaw = process.env.ALLOWED_ORIGINS && !allowAllOrigins
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim().replace(/\/+$/, ''))
+  : ["http://localhost:4028", "http://localhost:3000", "https://namohomes-admin-lts.vercel.app", "https://namohomesindia.com", "https://www.namohomesindia.com"];
+
+const allowedOrigins = [...new Set(allowedOriginsRaw.filter(Boolean))];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    if (allowAllOrigins) return callback(null, true);
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+    const originNormalized = origin.replace(/\/+$/, '');
+    const isAllowed = allowedOrigins.includes(originNormalized);
+    if (isAllowed || process.env.NODE_ENV !== 'production') {
       callback(null, true);
     } else {
+      console.warn(`CORS blocked: ${origin}. Allowed: ${allowedOrigins.join(', ')}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 const multer = require("multer");
