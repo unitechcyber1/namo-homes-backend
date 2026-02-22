@@ -40,8 +40,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // 4️⃣ Create user
   const user = await User.create({
     email: normalizedEmail,
-    password,
-    phone_number
+    password
   });
 
   if (!user) {
