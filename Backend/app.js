@@ -10,7 +10,6 @@ const AWS = require("aws-sdk");
 const contactFormRouter = require("./routes/client/contactFormRouter");
 const adminRoutes = require("./routes/admin/index")
 const clientRoutes = require("./routes/client/index")
-const { protect } = require("./middleware/authMiddleware")
 require("dotenv").config();
 
 // Validate environment variables before starting
@@ -33,16 +32,7 @@ app.use(express.static('public'));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(contactFormRouter);
-// app.use((req, res, next) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*"); // change * to your domain in production
-//   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-//   if (req.method === "OPTIONS") return res.sendStatus(204);
-//   next();
-// });
-// CORS configuration - Add your frontend URLs to ALLOWED_ORIGINS (no trailing slash)
-// Example: ALLOWED_ORIGINS=https://namohomes-admin-lts.vercel.app,https://namohomesindia.com
-// Set ALLOWED_ORIGINS=* to allow all origins (use only if needed)
+
 const allowAllOrigins = process.env.ALLOWED_ORIGINS === '*';
 const allowedOriginsRaw = process.env.ALLOWED_ORIGINS && !allowAllOrigins
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim().replace(/\/+$/, ''))
@@ -161,9 +151,6 @@ app.post("/api/sheet", async (req, res) => {
     res.status(500).json({ status: "error", message: err.message });
   }
 });
-app.get("/", (req, res) => {
-  res.send("API is running for namohomes...");
-});
 
 // Health check endpoint for production monitoring
 app.get("/health", (req, res) => {
@@ -204,14 +191,3 @@ process.on('SIGTERM', () => {
   });
 });
 
-process.on('SIGINT', () => {
-  console.log('SIGINT signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-    const mongoose = require('mongoose');
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB connection closed');
-      process.exit(0);
-    });
-  });
-});
