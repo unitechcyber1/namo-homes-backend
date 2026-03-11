@@ -8,6 +8,7 @@ const validateEnv = require("./config/envValidation");
 const app = express();
 const AWS = require("aws-sdk");
 const contactFormRouter = require("./routes/client/contactFormRouter");
+const sheetRouter = require("./routes/client/sheetRouter");
 const adminRoutes = require("./routes/admin/index")
 const clientRoutes = require("./routes/client/index")
 require("dotenv").config();
@@ -72,6 +73,7 @@ const allowedFormats = [
 ];
 const pdfAllowFormats = ["application/pdf"];
 const videoAllowFormats = ["video/mp4", "video/quicktime", "video/webm", "video/ogg"];
+
 app.post("/upload-image", upload.array("files"), (req, res) => {
   const promiseArray = [];
   req.files.forEach((file) => {
@@ -128,30 +130,6 @@ app.post("/upload-image", upload.array("files"), (req, res) => {
       res.status(500).send(err);
     });
 });
-// Google Apps Script URL - Move to environment variable
-const GAS_URL = process.env.GAS_URL || "https://script.google.com/macros/s/AKfycbyj-PR0KgZNvKNidgixI8i-YDHfaMgfb8m57zoEGUVB0EDiP0f3CkYL7-VZYtEWYs8vkA/exec";
-app.post("/api/sheet", async (req, res) => {
-  try {
-    const resp = await fetch(GAS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(req.body),
-    });
-
-    const text = await resp.text();
-    // try parse JSON, otherwise forward text
-    try {
-      const json = JSON.parse(text);
-      res.status(resp.status).json(json);
-    } catch (e) {
-      res.status(resp.status).send(text);
-    }
-  } catch (err) {
-    console.error("Proxy error:", err);
-    res.status(500).json({ status: "error", message: err.message });
-  }
-});
-
 // Health check endpoint for production monitoring
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -164,6 +142,7 @@ app.get("/health", (req, res) => {
 //-----------------aws-s3------------------------
 app.use("/api/admin", jwtAdminVerify, adminRoutes);
 app.use("/api/client", clientRoutes);
+app.use("/api", sheetRouter);
 
 app.use(notFound);
 app.use(errorHandle);

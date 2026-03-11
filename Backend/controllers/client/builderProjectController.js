@@ -3,6 +3,30 @@ const BuilderProject = require("../../models/builderProjectModel");
 const City = require("../../models/cityModel");
 const MicroLocation = require("../../models/microLocationModel");
 require("dotenv").config();
+
+// Best-effort parser to turn starting_price string into a numeric value
+// so we can sort low-to-high / high-to-low consistently.
+// Examples handled: "5000000", "50,00,000", "₹ 75 Lakh", "1.2 Cr"
+function parseStartingPrice(value) {
+  if (!value || typeof value !== "string") return NaN;
+  const lower = value.toLowerCase();
+
+  // Extract number part (digits, commas, dots)
+  const match = lower.match(/[\d.,]+/);
+  if (!match) return NaN;
+  let num = match[0].replace(/,/g, "");
+  let parsed = parseFloat(num);
+  if (Number.isNaN(parsed)) return NaN;
+
+  // Scale for common Indian units if present
+  if (lower.includes("cr")) {
+    parsed = parsed * 1e7; // 1 Cr = 1,00,00,000
+  } else if (lower.includes("lac") || lower.includes("lakh")) {
+    parsed = parsed * 1e5; // 1 Lakh = 1,00,000
+  }
+
+  return parsed;
+}
 const getProjects = asyncHandler(async (req, res) => {
   try {
     const projects = await BuilderProject.find()
@@ -27,7 +51,18 @@ const getProjects = asyncHandler(async (req, res) => {
 const getProjectsWithPagination = asyncHandler(async (req, res) => {
   try {
     let condition = {}
-    const { name, city, location, status, page = 1, limit = 10, project_type, plans_type } = req.query;
+    const {
+      name,
+      city,
+      location,
+      status,
+      page = 1,
+      limit = 10,
+      project_type,
+      plans_type,
+      project_status,
+      price_sort, // 'low_to_high' | 'high_to_low'
+    } = req.query;
     if (name) {
       condition['name'] = { $regex: name, $options: "i" };
     }
@@ -53,19 +88,48 @@ const getProjectsWithPagination = asyncHandler(async (req, res) => {
     if(plans_type){
       condition['plans_type'] = plans_type
     }
-    const projects = await BuilderProject.find(condition)
+    if (project_status && project_status !== 'all') {
+      condition['project_status'] = project_status;
+    }
+    const allProjects = await BuilderProject.find(condition)
       .populate("location.city", "name")
       .populate("location.micro_location", "name")
       .populate("builder", "name")
       .populate('images.image')
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 })
       .exec();
-    const totalCount = await BuilderProject.countDocuments(condition);
-    if (!projects) {
+
+    if (!allProjects) {
       return res.status(404).json({ message: "project not found" });
     }
+
+    // Sort in-memory to support complex string -> number parsing for starting_price
+    let sortedProjects = [...allProjects];
+    if (price_sort === 'low_to_high' || price_sort === 'high_to_low') {
+      sortedProjects.sort((a, b) => {
+        const aVal = parseStartingPrice(a.starting_price);
+        const bVal = parseStartingPrice(b.starting_price);
+
+        // Put NaN (missing/invalid) at the end for both directions
+        const aNaN = Number.isNaN(aVal);
+        const bNaN = Number.isNaN(bVal);
+        if (aNaN && bNaN) return 0;
+        if (aNaN) return 1;
+        if (bNaN) return -1;
+
+        return price_sort === 'low_to_high' ? aVal - bVal : bVal - aVal;
+      });
+    } else {
+      // Default: newest first (like before)
+      sortedProjects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    const totalCount = sortedProjects.length;
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = startIndex + limitNum;
+    const projects = sortedProjects.slice(startIndex, endIndex);
+
     res.status(200).json({
       totalCount,
       projects,
@@ -79,7 +143,10 @@ const getProjectsById = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const project = await BuilderProject.findById(id)
       .populate('images.image')
+      .populate("allAmenities.commercial", "name icon")
+      .populate("allAmenities.residential", "name icon")
       .populate('plans.floor_plans.image')
+      .populate('plans.category', 'name')
       .populate('master_plan')
       .populate('location_map')
       .populate('brochure')
