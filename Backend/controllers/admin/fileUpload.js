@@ -41,11 +41,14 @@ const uploadFilesToS3 = async (req, res, bucketName, isDwarka, isProp) => {
     try {
         for (const file of req.files) {
             let params = {};
-            // let fileExtension = file.originalname.split(".").pop();
-            let fileName = `${_getName()}.webp`;
+            const originalExtension = file.originalname.split(".").pop() || "";
+            const baseName = _getName();
+            let fileName;
 
             let buffer = file.buffer;
             if (allowedFormats.includes(file.mimetype)) {
+                // Images -> always stored as WebP
+                fileName = `${baseName}.webp`;
                 params = {
                     Acl: "public-read",
                     Bucket: `${bucketName}/images`,
@@ -60,20 +63,26 @@ const uploadFilesToS3 = async (req, res, bucketName, isDwarka, isProp) => {
                     buffer = await _resize(file.buffer, { width: 1200, height: 756 });
                 }
             } else if (pdfAllowFormats.includes(file.mimetype)) {
+                // PDFs -> keep original extension, no WebP conversion
+                fileName = `${baseName}.${originalExtension || "pdf"}`;
                 params = {
                     Bucket: `${bucketName}/pdfs`,
                     Key: fileName,
-                    Body: file.buffer,
+                    ContentType: "application/pdf",
                     size: file.size
                 };
+                buffer = file.buffer;
             } else if (videoAllowFormats.includes(file.mimetype)) {
+                // Videos -> keep original extension, no WebP conversion
+                fileName = `${baseName}.${originalExtension || "mp4"}`;
                 params = {
                     Acl: "public-read",
                     Bucket: `${bucketName}/videos`,
                     Key: fileName,
-                    Body: file.buffer,
+                    ContentType: file.mimetype,
                     size: file.size
                 };
+                buffer = file.buffer;
             } else {
                 console.log(`Skipping file ${file.originalname} due to unsupported format.`);
                 continue; // Skip unsupported formats
