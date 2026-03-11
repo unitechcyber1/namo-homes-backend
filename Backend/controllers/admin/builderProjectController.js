@@ -10,14 +10,25 @@ AWS.config.update({
   secretAccessKey: process.env.SECRET_KEY,
   region: process.env.REGION,
 });
+
+// Normalize possible ObjectId fields coming from the client.
+// Treat empty string / null / undefined as undefined so Mongoose doesn't try to cast "" to ObjectId.
+const normalizeObjectId = (value) => {
+  if (!value) return undefined;
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  return value;
+};
 const S3Delete = async (params) => {
   try {
-    let s3 = new AWS.S3();
+    const s3 = new AWS.S3();
     return s3.deleteObject(params).promise();
   } catch (e) {
-    throw (e)
+    throw e;
   }
-}
+};
+
+const REQUIRED_FIELDS = ["name", "slug"];
+
 const postBuilderProjects = asyncHandler(async (req, res) => {
   const {
     name,
@@ -60,6 +71,30 @@ const postBuilderProjects = asyncHandler(async (req, res) => {
     is_popular,
   } = req.body;
 
+  // Basic required-field validation
+  const missing = REQUIRED_FIELDS.filter((field) => !req.body[field]);
+  if (missing.length > 0) {
+    return res.status(400).json({
+      message: "Missing required fields",
+      missing,
+    });
+  }
+
+  // Ensure slug and name are unique before creating
+  const existing = await BuilderProject.findOne({
+    $or: [{ slug }, { name }],
+  }).lean();
+
+  if (existing) {
+    return res.status(409).json({
+      message: "Project with same name or slug already exists",
+      conflictOn: {
+        name: existing.name === name,
+        slug: existing.slug === slug,
+      },
+    });
+  }
+
   try {
     const builderData = await BuilderProject.create({
       name,
@@ -79,20 +114,20 @@ const postBuilderProjects = asyncHandler(async (req, res) => {
       advantages,
       video,
       banner_bullets,
-      location_map,
+      location_map: normalizeObjectId(location_map),
       for_rent,
       for_sale,
       is_rera_approved,
       is_zero_brokerage,
       location,
       plans,
-      master_plan,
+      master_plan: normalizeObjectId(master_plan),
       highlights,
       amenties,
       allAmenities,
       description,
       images,
-      brochure,
+      brochure: normalizeObjectId(brochure),
       seo,
       geo_location,
       contact_details,
@@ -101,9 +136,14 @@ const postBuilderProjects = asyncHandler(async (req, res) => {
       priority,
       is_popular,
     });
-    res.json(builderData);
+
+    return res.status(201).json(builderData);
   } catch (error) {
-    console.log(error);
+    console.error("Error creating BuilderProject:", error);
+    return res.status(500).json({
+      message: "Failed to create builder project",
+      error: error.message,
+    });
   }
 });
 const editProjects = asyncHandler(async (req, res) => {
@@ -147,58 +187,76 @@ const editProjects = asyncHandler(async (req, res) => {
     priority,
     is_popular,
   } = req.body;
+
   const { id } = req.params;
-  await BuilderProject.findByIdAndUpdate(
-    id,
-    {
-      name,
-      builder,
-      project_type,
-      plans_type,
-      slug,
-      starting_price,
-      configuration,
-      ratings,
-      tagline,
-      project_tag,
-      coming_soon,
-      project_status,
-      project_size,
-      short_descrip,
-      advantages,
-      video,
-      banner_bullets,
-      location_map,
-      for_rent,
-      for_sale,
-      is_rera_approved,
-      is_zero_brokerage,
-      location,
-      plans,
-      master_plan,
-      highlights,
-      amenties,
-      allAmenities,
-      description,
-      images,
-      brochure,
-      seo,
-      geo_location,
-      contact_details,
-      is_active,
-      status,
-      priority,
-      is_popular,
-    },
-    { new: true }
-  )
-    .then(() => res.send("updated successfully"))
-    .catch((err) => {
-      console.log(err);
-      res.send({
-        error: err,
-      });
+
+  // Basic required-field validation for updates as well
+  const missing = REQUIRED_FIELDS.filter((field) => !req.body[field]);
+  if (missing.length > 0) {
+    return res.status(400).json({
+      message: "Missing required fields",
+      missing,
     });
+  }
+
+  try {
+    const updated = await BuilderProject.findByIdAndUpdate(
+      id,
+      {
+        name,
+        builder,
+        project_type,
+        plans_type,
+        slug,
+        starting_price,
+        configuration,
+        ratings,
+        tagline,
+        project_tag,
+        coming_soon,
+        project_status,
+        project_size,
+        short_descrip,
+        advantages,
+        video,
+        banner_bullets,
+        location_map: normalizeObjectId(location_map),
+        for_rent,
+        for_sale,
+        is_rera_approved,
+        is_zero_brokerage,
+        location,
+        plans,
+        master_plan: normalizeObjectId(master_plan),
+        highlights,
+        amenties,
+        allAmenities,
+        description,
+        images,
+        brochure: normalizeObjectId(brochure),
+        seo,
+        geo_location,
+        contact_details,
+        is_active,
+        status,
+        priority,
+        is_popular,
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    return res.status(200).json(updated);
+  } catch (err) {
+    console.error("Error updating BuilderProject:", err);
+    return res.status(500).json({
+      message: "Failed to update builder project",
+      error: err.message,
+    });
+  }
 });
 const getProjects = asyncHandler(async (req, res) => {
   try {
