@@ -4,7 +4,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node Backend/app.js",
-    "dev": "nodemon Backend/app.js",
+    "dev": "nodemon --watch Backend --ext js,json Backend/app.js",
     "production": "NODE_ENV=production node Backend/app.js"
   },
   "author": "gp-admin",
