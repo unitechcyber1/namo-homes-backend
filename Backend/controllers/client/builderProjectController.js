@@ -55,6 +55,7 @@ const getProjectsWithPagination = asyncHandler(async (req, res) => {
       name,
       city,
       location,
+      microlocation,
       status,
       page = 1,
       limit = 10,
@@ -71,6 +72,20 @@ const getProjectsWithPagination = asyncHandler(async (req, res) => {
     }
     if (location) {
       condition['location.micro_location'] = location;
+    }
+    if (microlocation && microlocation.trim()) {
+      const searchTerm = microlocation.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const microLocations = await MicroLocation.find({
+        name: { $regex: searchTerm, $options: "i" },
+      })
+        .select("_id")
+        .lean();
+      const microIds = microLocations.map((m) => m._id);
+      if (microIds.length > 0) {
+        condition["location.micro_location"] = { $in: microIds };
+      } else {
+        condition["_id"] = null;
+      }
     }
     // if (shouldApprove) {
     //     condition['status'] = 'approve';
@@ -91,6 +106,7 @@ const getProjectsWithPagination = asyncHandler(async (req, res) => {
     if (project_status && project_status !== 'all') {
       condition['project_status'] = project_status;
     }
+    condition['status'] = 'approve';
     const allProjects = await BuilderProject.find(condition)
       .populate("location.city", "name")
       .populate("location.micro_location", "name")
@@ -129,7 +145,6 @@ const getProjectsWithPagination = asyncHandler(async (req, res) => {
     const startIndex = (pageNum - 1) * limitNum;
     const endIndex = startIndex + limitNum;
     const projects = sortedProjects.slice(startIndex, endIndex);
-
     res.status(200).json({
       totalCount,
       projects,
