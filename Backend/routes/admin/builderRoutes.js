@@ -13,7 +13,7 @@ const {
 const router = express.Router();
 
 router
-  .post("/", postBuilder)
+  .post("/builder", postBuilder)
   .put("/edit-builder/:id", editBuilders)
   .get("/builders", getBuilder)
   .get("/builders/:id", getBuilderById)
