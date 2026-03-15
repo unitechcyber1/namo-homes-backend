@@ -129,6 +129,10 @@ const builderProjectModel = mongoose.Schema(
           id: Number,
           name: String,
           area: String,
+          is_sold: {
+            type: Boolean,
+            default: false,
+          },
           rent_price: { type: String },
           sale_price: { type: String },
           image: {

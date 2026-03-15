@@ -17,13 +17,13 @@ const postCity = asyncHandler(async (req, res) => {
   }
 });
 const addOrEditCity = asyncHandler(async (req, res) => {
-  const { name, country, state, active } = req.body;
+  const { name, country, state, active, description } = req.body;
   const { id } = req.params;
 
   City.findByIdAndUpdate(id, {
     name,
     country,
-
+    description,
     state,
     active,
   })

@@ -13,6 +13,6 @@ router
   .get("/seos/:seoId",  getSeoById)
   .post("/seos",  postSeo)
   .put("/seos/:seoId",  addOrEditSeo)
-  .delete("/delete/:seoId",  deleteSeo);
+  .delete("/seo/delete/:seoId",  deleteSeo);
 
 module.exports = router;

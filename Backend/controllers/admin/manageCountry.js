@@ -45,13 +45,14 @@ const postCountry = asyncHandler(async (req, res) => {
 });
 
 const addOrEditCountry = asyncHandler(async (req, res) => {
-  const { name, dial_code, iso_code } = req.body;
+  const { name, dial_code, iso_code, description } = req.body;
   const { countryId } = req.params;
 
   Country.findByIdAndUpdate(countryId, {
     name,
     dial_code,
     iso_code,
+    description,
   })
     .then(() => res.send("updated successfully"))
     .catch((err) => {
