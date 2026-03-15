@@ -232,6 +232,30 @@ const searchProjects = asyncHandler(async (req, res) => {
   }
 })
 
+const getProjectBySlug = asyncHandler(async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const project = await BuilderProject.findOne({ slug })
+    .populate('images.image')
+    .populate("allAmenities.commercial", "name icon")
+    .populate("allAmenities.residential", "name icon")
+    .populate('plans.floor_plans.image')
+    .populate('plans.category', 'name')
+    .populate('master_plan')
+    .populate('location_map')
+    .populate('brochure')
+    .exec();
+    if (!project) {
+      res.status(404).json({ message: "Project not found" });
+    } else {
+      project.images.sort((a, b) => a.order - b.order); 
+      res.status(200).json(project);
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 
 module.exports = {
@@ -239,4 +263,5 @@ module.exports = {
   getProjectsById,
   searchProjects,
   getProjectsWithPagination,
+  getProjectBySlug,
 };
