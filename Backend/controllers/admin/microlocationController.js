@@ -69,7 +69,7 @@ const getMicroBycityName = asyncHandler(async (req, res) => {
   }
 });
 const addOrEditMicrolocation = asyncHandler(async (req, res) => {
-  const { name, country, image, city, state, active, description } = req.body;
+  const { name, country, image, city, state, active, description   } = req.body;
   const { id } = req.params;
 
   MicroLocation.findByIdAndUpdate(id, {

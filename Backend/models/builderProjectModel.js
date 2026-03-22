@@ -13,7 +13,10 @@ const builderProjectModel = mongoose.Schema(
       ref: "PropertyType",
     },
     slug: { type: String, unique: true, required: true },
-    starting_price: String,
+    starting_price: {
+      type: Number,
+      default: 0,
+    },
     configuration: String,
     ratings: Number,
     tagline: String,

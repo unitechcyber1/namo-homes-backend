@@ -18,6 +18,16 @@ const normalizeObjectId = (value) => {
   if (typeof value === "string" && value.trim() === "") return undefined;
   return value;
 };
+
+// Normalize possible number fields coming from the client.
+// Treat empty string as undefined so Mongoose can apply defaults / keep existing values.
+const normalizeNumber = (value) => {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  const num = Number(value);
+  if (Number.isNaN(num)) return undefined;
+  return num;
+};
 const S3Delete = async (params) => {
   try {
     const s3 = new AWS.S3();
@@ -102,7 +112,7 @@ const postBuilderProjects = asyncHandler(async (req, res) => {
       project_type,
       plans_type,
       slug,
-      starting_price,
+      starting_price: normalizeNumber(starting_price),
       configuration,
       ratings,
       tagline,
@@ -208,7 +218,7 @@ const editProjects = asyncHandler(async (req, res) => {
         project_type,
         plans_type,
         slug,
-        starting_price,
+        starting_price: normalizeNumber(starting_price),
         configuration,
         ratings,
         tagline,

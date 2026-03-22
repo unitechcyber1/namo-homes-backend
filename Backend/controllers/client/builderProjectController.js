@@ -2,13 +2,15 @@ const asyncHandler = require("express-async-handler");
 const BuilderProject = require("../../models/builderProjectModel");
 const City = require("../../models/cityModel");
 const MicroLocation = require("../../models/microLocationModel");
+const PropertyType = require("../../models/propertyTypeModel");
 require("dotenv").config();
 
-// Best-effort parser to turn starting_price string into a numeric value
-// so we can sort low-to-high / high-to-low consistently.
-// Examples handled: "5000000", "50,00,000", "₹ 75 Lakh", "1.2 Cr"
+// Best-effort parser to turn starting_price (string or number) into a numeric value
+// for sort/display. Examples: "5000000", "50 Lakh", "1.2 Cr", or already 5000000
 function parseStartingPrice(value) {
-  if (!value || typeof value !== "string") return NaN;
+  if (value == null) return NaN;
+  if (typeof value === "number" && !Number.isNaN(value)) return value;
+  if (typeof value !== "string") return NaN;
   const lower = value.toLowerCase();
 
   // Extract number part (digits, commas, dots)
@@ -63,6 +65,8 @@ const getProjectsWithPagination = asyncHandler(async (req, res) => {
       plans_type,
       project_status,
       price_sort, // 'low_to_high' | 'high_to_low'
+      min_price,  // optional, numeric (rupees), e.g. 5000000 for 50 Lakh
+      max_price,  // optional, numeric (rupees), e.g. 100000000 for 1 Cr
     } = req.query;
     if (name) {
       condition['name'] = { $regex: name, $options: "i" };
@@ -100,8 +104,69 @@ const getProjectsWithPagination = asyncHandler(async (req, res) => {
     if (project_type) {
       condition['project_type'] = project_type;
     }
-    if(plans_type){
-      condition['plans_type'] = plans_type
+    // plans_type: frontend sends PropertyType name (string); resolve to ObjectId and filter
+    if (plans_type && plans_type !== "all") {
+      const name = String(plans_type).trim();
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const types = await PropertyType.find({
+        name: { $regex: escaped, $options: "i" },
+      })
+        .select("_id")
+        .lean();
+      const typeIds = types.map((t) => t._id);
+      if (typeIds.length > 0) {
+        condition["plans_type"] =
+          typeIds.length === 1 ? typeIds[0] : { $in: typeIds };
+      } else {
+        condition["_id"] = null;
+      }
+    }
+
+    // Price range filter at DB level.
+    // Your existing data shows `starting_price` stored as numeric strings (e.g. "29000000"),
+    // so `$gte/$lte` with numbers will not match unless we cast.
+    // This uses $convert so it works whether starting_price is stored as number or string.
+    const minVal =
+      min_price != null && min_price !== "" ? Number(min_price) : null;
+    const maxVal =
+      max_price != null && max_price !== "" ? Number(max_price) : null;
+
+    const priceExpr = [];
+    if (minVal != null && !Number.isNaN(minVal)) {
+      priceExpr.push({
+        $gte: [
+          {
+            $convert: {
+              input: "$starting_price",
+              to: "double",
+              onError: null,
+              onNull: null,
+            },
+          },
+          minVal,
+        ],
+      });
+    }
+    if (maxVal != null && !Number.isNaN(maxVal)) {
+      priceExpr.push({
+        $lte: [
+          {
+            $convert: {
+              input: "$starting_price",
+              to: "double",
+              onError: null,
+              onNull: null,
+            },
+          },
+          maxVal,
+        ],
+      });
+    }
+
+    if (priceExpr.length === 1) {
+      condition.$expr = priceExpr[0];
+    } else if (priceExpr.length > 1) {
+      condition.$expr = { $and: priceExpr };
     }
     if (project_status && project_status !== 'all') {
       condition['project_status'] = project_status;
