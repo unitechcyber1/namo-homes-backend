@@ -80,6 +80,46 @@ const builderProjectModel = mongoose.Schema(
         },
         distance: Number
       },
+      school_detail: {
+        name: String,
+        is_near_school: {
+          type: Boolean,
+          default: false
+        },
+        distance: Number
+      },
+      restro_detail: {
+        name: String,
+        is_near_restro: {
+          type: Boolean,
+          default: false
+        },
+        distance: Number
+      },
+      hospital_detail: {
+        name: String,
+        is_near_hospital: {
+          type: Boolean,
+          default: false
+        },
+        distance: Number
+      },
+      college_detail: {
+        name: String,
+        is_near_college: {
+          type: Boolean,
+          default: false
+        },
+        distance: Number
+      },
+      market_detail: {
+        name: String,
+        is_near_market: {
+          type: Boolean,
+          default: false
+        },
+        distance: Number
+      },
       is_near_metro: {
         type: Boolean,
         default: false,
