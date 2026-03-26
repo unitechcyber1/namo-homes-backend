@@ -268,6 +268,25 @@ const editProjects = asyncHandler(async (req, res) => {
     });
   }
 });
+const getNewLaunchProjectsbyCityId = asyncHandler(async (req, res) => {
+  const { city } = req.params;
+  const {project_status} = req.query;
+  try {
+    const projects = await BuilderProject.find({
+      "location.city": city,
+      project_status: project_status,
+      status: "approve",
+      "new_launch.order": { $nin: [0, 1000] },
+    })
+      .populate("location.city", "name")
+      .populate("location.micro_location", "name")
+      .sort({ "new_launch.order": 1 })
+      .exec();
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+})
 const getProjects = asyncHandler(async (req, res) => {
   try {
     const projects = await BuilderProject.find()
@@ -1092,6 +1111,64 @@ const imageOrderChanges = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "An error occurred while updating priority" });
   }
 });
+const newLaunchProjectOrder = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { order, status, cityId } = req.body;
+    const projectsToUpdate = await BuilderProject.findById(id);
+    if (!projectsToUpdate) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+    const currentOrder = projectsToUpdate.new_launch.order;
+    if (projectsToUpdate.location.city.toString() !== cityId) {
+      return res.status(400).json({
+        error: "project does not belong to the specified city",
+      });
+    }
+    if (status === false && order === 1000) {
+      projectsToUpdate.new_launch.status = false;
+      projectsToUpdate.new_launch.order = order;
+      await projectsToUpdate.save();
+      await BuilderProject.updateMany(
+        {
+          "location.city": cityId,
+          _id: { $ne: id },
+          "new_launch.order": { $gt: currentOrder },
+          "new_launch.status": true,
+        },
+        { $inc: { "new_launch.order": -1 } }
+      );
+    } else {
+      projectsToUpdate.new_launch.order = order;
+      projectsToUpdate.new_launch.status = order !== 1000;
+      await projectsToUpdate.save();
+    }
+    res.json(projectsToUpdate);
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred" });
+  }
+})
+const newLaunchProjectOrderByDrag = asyncHandler(async (req, res) => {
+  try {
+    const updatedProjects = req.body;
+    for (const project of updatedProjects) {
+      const { _id, new_launch } = project;
+        await BuilderProject.findByIdAndUpdate(_id, {
+        $set: {
+          "new_launch.order": new_launch.order,
+          "new_launch.status": new_launch.order !== 1000,
+        },
+      });
+    }
+
+    res.json({ message: "Priority updated successfully" });
+  } catch (error) {
+    console.error("Error updating priority:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while updating priority" });
+  }
+})
 
 module.exports = {
   postBuilderProjects,
@@ -1109,6 +1186,9 @@ module.exports = {
   getProjectbyMicrolocationWithPriority,
   changeProjectOrderbyDrag,
   searchProjects,
+  getNewLaunchProjectsbyCityId,
+  newLaunchProjectOrder,
+  newLaunchProjectOrderByDrag,
   getProjectsbyBuilder,
   changeBuilderProjectOrder,
   changeBuilderProjectOrderbyDrag,

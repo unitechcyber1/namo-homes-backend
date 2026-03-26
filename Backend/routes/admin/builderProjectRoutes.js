@@ -28,7 +28,10 @@ const {
   indiaProjectsWithPriority,
   indiaProjectOrderbyDrag,
   imageOrderChanges,
-  deleteProjectImage
+  deleteProjectImage,
+  getNewLaunchProjectsbyCityId,
+  newLaunchProjectOrder,
+  newLaunchProjectOrderByDrag
 } = require("../../controllers/admin/builderProjectController");
 const { uploadFilesToS3 } = require("../../controllers/admin/fileUpload")
 const router = express.Router();
@@ -44,6 +47,9 @@ router
   .get("/projects", getProjects)
   .get("/projects-page", getProjectsWithPagination)
   .post("/upload", upload.array("files"), uploadMiddleware(process.env.BUCKET_NAME))
+  .get("/newlaunch-order/:city", getNewLaunchProjectsbyCityId)
+  .put("/newlaunch-projects/:id", newLaunchProjectOrder)
+  .put("/update-newlaunch-projects", newLaunchProjectOrderByDrag)
   .get("/projects/:id", getProjectsById)
   .delete("/delete/:id", deleteProjects)
   .post("/file/delete", deleteProjectImage)
