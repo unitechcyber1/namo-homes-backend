@@ -37,7 +37,7 @@ app.use(contactFormRouter);
 const allowAllOrigins = process.env.ALLOWED_ORIGINS === '*';
 const allowedOriginsRaw = process.env.ALLOWED_ORIGINS && !allowAllOrigins
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim().replace(/\/+$/, ''))
-  : ["http://localhost:4028", "http://localhost:3000", "https://namohomes-admin-lts.vercel.app", "https://namohomesindia.com", "https://www.namohomesindia.com"];
+  : ["http://localhost:4028", "http://localhost:3000", "https://namohomes-admin-lts.vercel.app", "https://namohomes-admin.vercel.app", "https://admin.namohomesindia.com", "https://namohomesindia.com", "https://www.namohomesindia.com"];
 
 const allowedOrigins = [...new Set(allowedOriginsRaw.filter(Boolean))];
 
